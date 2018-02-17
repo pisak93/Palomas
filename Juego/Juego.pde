@@ -1,3 +1,10 @@
+import gab.opencv.*;
+import processing.video.*;
+import java.awt.*;
+
+Capture video;
+OpenCV opencv;
+
 int enemigosStart[];
 float enemigosX[];
 float enemigosY[];
@@ -7,6 +14,8 @@ int puntaje=0;
 
 float posX=400;
 float posY=600;
+
+float canonX=0;
 
 float startX=0;
 float startY=0;
@@ -25,7 +34,7 @@ PImage canon;
 PImage red;
 
 void setup(){
-  size(1000,800);
+  size(1000,750);
   fondo = loadImage("fondo.png");
   paloma = loadImage("paloma.png");
   palomaReves = loadImage("paloma-reves.png");
@@ -49,10 +58,16 @@ void setup(){
     }
     enemigosY[i]=random(50,150);
     enemigosEstado[i]=1;
-    enemigosVelocidad[i]=random(3,5);
+    enemigosVelocidad[i]=random(15,30);
   }
   startX=posX;
   startY=posY;
+  
+  video = new Capture(this, 640/2, 480/2);
+  opencv = new OpenCV(this, 640/2, 480/2);
+  opencv.loadCascade(OpenCV.CASCADE_FRONTALFACE);  
+
+  video.start();
 }
 
 void draw(){
@@ -72,19 +87,19 @@ void draw(){
   text("Score: ",40,700);
   text(puntaje,180,700);
   fill(255,0,0);
-  image(canon,mouseX-60,posY,120,120);
+  image(canon,canonX-60,posY,120,120);
   
   
   if(mousePressed && !disparando){
    
     fill(255,255,0);
     disparando=true;
-    destinoX=mouseX;
+    destinoX=canonX;
     destinoY=mouseY;
     
   }
   if(disparando){
-    startY-=10;
+    startY-=50;
     image(red,destinoX,startY,57,20);
   for(int i =0;i<100;i++){
     if(enemigosX[i]>=destinoX && enemigosX[i]<=destinoX+57 && enemigosY[i]>=startY && enemigosY[i]>=startY+20){
@@ -116,5 +131,26 @@ void draw(){
   }
   
   
+  scale(3.125);
+  opencv.loadImage(video);
 
+ 
+
+  noFill();
+  stroke(0, 255, 0);
+  strokeWeight(3);
+  Rectangle[] faces = opencv.detect();
+ 
+
+  for (int i = 0; i < faces.length; i++) {
+    
+    float m = map(faces[i].x,0,200,1000,0);
+    canonX=m;
+    println(faces[i].x);
+  }
+  
+
+}
+void captureEvent(Capture c) {
+  c.read();
 }
